@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const slugify = require("slugify");
+const geoCoder = require("../utils/GeoCoder");
 
 const Bootcampschema = mongoose.Schema({
   name: {
@@ -43,7 +45,7 @@ const Bootcampschema = mongoose.Schema({
     required: [true, "Please add an address"],
   },
   location: {
-    //geo json point
+    // GeoJSON Point
     type: {
       type: String,
       enum: ["Point"],
@@ -52,7 +54,7 @@ const Bootcampschema = mongoose.Schema({
       type: [Number],
       index: "2dsphere",
     },
-    formatetedaddress: String,
+    formattedAddress: String,
     street: String,
     city: String,
     state: String,
@@ -101,6 +103,32 @@ const Bootcampschema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+// creating bootcamp slug from the name
+
+Bootcampschema.pre("save", function (next) {
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+//Geocoder
+Bootcampschema.pre("save", async function (next) {
+  const loc = await geoCoder.geocode(this.address);
+  this.location = {
+    type: "Point",
+    coordinates: [loc[0].longitude, loc[0].latitude],
+    formattedAddress: loc[0].formattedAddress,
+    street: loc[0].streetName,
+    city: loc[0].city,
+    state: loc[0].stateCode,
+    zipcode: loc[0].zipcode,
+    country: loc[0].countryCode,
+  };
+
+  // Do not save address in DB
+  this.address = undefined;
+  next();
 });
 
 module.exports = mongoose.model("Bootcamp", Bootcampschema);
