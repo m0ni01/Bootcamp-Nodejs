@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const color = require("colors");
 const bootcamps = require("./routes/bootcamp.js");
+const course = require("./routes/course.js");
 const logger = require("./middleware/logger.js");
 const errorhandler = require("./middleware/errorhandler.js");
 
@@ -23,6 +24,7 @@ const PORT = process.env.PORT || 5000;
 
 // bootcamps  API wiht help of router
 app.use("/api/v1/bootcamps", bootcamps);
+app.use("/api/v1/courses", course);
 
 //custom error handling
 app.use(errorhandler);
