@@ -22,10 +22,10 @@ const CourseSchema = new mongoose.Schema({
     required: [true, "Please add tution fee"],
   },
 
-  minimumskill: {
+  minimumSkill: {
     type: String,
     required: [true, "Please add Minimum skill"],
-    enum: ["beginnner", "intermediate", "advance"],
+    enum: ["beginner", "intermediate", "advance"],
   },
 
   scholorshipAvaible: {
@@ -40,6 +40,7 @@ const CourseSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: "Bootcamp",
     required: true,
+    justOne: false,
   },
 });
 
