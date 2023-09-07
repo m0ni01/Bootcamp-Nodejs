@@ -2,9 +2,11 @@ const express = require("express");
 const dotenv = require("dotenv");
 const color = require("colors");
 const bootcamps = require("./routes/bootcamp.js");
+const path = require("path");
 const course = require("./routes/course.js");
 const logger = require("./middleware/logger.js");
 const errorhandler = require("./middleware/errorhandler.js");
+const fileUpload = require("express-fileupload");
 
 //load env vars
 dotenv.config({ path: "./config/config.env" });
@@ -17,6 +19,13 @@ connectdb();
 const app = express();
 //JSON  PRASER
 app.use(express.json());
+
+//file upload
+app.use(fileUpload());
+
+//set static folder
+app.use(express.static(path.join(__dirname, "public")));
+
 //use for logging request on server
 app.use(logger);
 

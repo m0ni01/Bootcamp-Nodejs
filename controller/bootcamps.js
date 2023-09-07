@@ -2,6 +2,8 @@ const ErrorResponse = require("../utils/ErrorResponse");
 const Bootcamp = require("../models/Bootcamp");
 const asyncHandler = require("../middleware/asynchandler");
 const geocoder = require("../utils/GeoCoder");
+const fileUpload = require("express-fileupload");
+const path = require("path");
 
 // @des         get all bootcamps
 // @route       GET /api/v1/bootcamps
@@ -155,3 +157,66 @@ exports.getBootcampInRadius = asyncHandler(async (req, res, next) => {
     .status(200)
     .json({ success: true, count: bootcamps.length, data: bootcamps });
 });
+
+//@des         Upload bootcamp image
+//@route       PUT /api/v1/:bootcamp/photo //
+//@access      PRIVATE
+
+exports.uploadBootcampImg = asyncHandler(async (req, res, next) => {
+  const bootcamp = await Bootcamp.findById(req.params.id);
+  if (!bootcamp) {
+    return next(new ErrorResponse(`Bootcamp not found ${req.params.id}`, 404));
+  }
+
+  //handling if file not uploaded
+  if (!req.files) {
+    return next(new ErrorResponse("Please upload file", 400));
+  }
+  //  res.status(200).json({ success: true, data: [] });
+  const file = req.files.file;
+
+  //checking if file type is image
+  if (!file.mimetype.startsWith("image")) {
+    return next(new ErrorResponse(`Please upload an image file`, 400));
+  }
+
+  //checking file size
+  if (file.size > process.env.MAX_FILE_UPLOAD) {
+    return next(
+      new ErrorResponse(
+        `Please upload an image less then ${process.env.MAX_FILE_UPLOAD}`,
+        400
+      )
+    );
+  }
+
+  const filename = `photo_${bootcamp._id}${path.parse(file.name).ext}`;
+  file.mv(`${process.env.PHOTO_UPLOAD_PATH}/${filename}`, async (err) => {
+    console.log(err);
+    return new ErrorResponse("Problem with file Upload", 500);
+  });
+
+  await Bootcamp.findByIdAndUpdate(bootcamp._id, { photo: file.name });
+  res.status(200).json({
+    success: true,
+    data: filename,
+  });
+});
+
+// exports.uploadBootcampImg = asyncHandler(async (req, res, next) => {
+//   const bootcamp = await Bootcamp.findById(req.params.id);
+//   if (!bootcamp) {
+//     return next(new ErrorResponse(`Bootcamp not found ${req.params.id}`, 404));
+//   }
+
+//   //handling if file not uploaded
+//   console.log(req.files.file);
+
+//   if (!req.files) {
+//     return next(new ErrorResponse("Please upload file", 400));
+//   }
+//   const file = req.files;
+//   console.log(file);
+
+//   //
+// });
