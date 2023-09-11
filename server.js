@@ -1,12 +1,15 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const color = require("colors");
-const bootcamps = require("./routes/bootcamp.js");
 const path = require("path");
-const course = require("./routes/course.js");
 const logger = require("./middleware/logger.js");
 const errorhandler = require("./middleware/errorhandler.js");
 const fileUpload = require("express-fileupload");
+
+//importing routes
+const auth = require("./routes/auth.js");
+const course = require("./routes/course.js");
+const bootcamps = require("./routes/bootcamp.js");
 
 //load env vars
 dotenv.config({ path: "./config/config.env" });
@@ -34,6 +37,7 @@ const PORT = process.env.PORT || 5000;
 // bootcamps  API wiht help of router
 app.use("/api/v1/bootcamps", bootcamps);
 app.use("/api/v1/courses", course);
+app.use("/api/v1/auth", auth);
 
 //custom error handling
 app.use(errorhandler);

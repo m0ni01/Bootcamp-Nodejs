@@ -16,7 +16,7 @@ module.exports.getCourses = asyncHandler(async (req, res, next) => {
       Data: course,
     });
   } else {
-    res.status(200).json(res.advancedResult);
+    res.status(200).json(res.advancedResults);
   }
 });
 
