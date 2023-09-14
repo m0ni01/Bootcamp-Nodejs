@@ -5,6 +5,7 @@ const path = require("path");
 const logger = require("./middleware/logger.js");
 const errorhandler = require("./middleware/errorhandler.js");
 const fileUpload = require("express-fileupload");
+const cookieParser = require("cookie-parser");
 
 //importing routes
 const auth = require("./routes/auth.js");
@@ -23,6 +24,8 @@ const app = express();
 //JSON  PRASER
 app.use(express.json());
 
+//cookie parser
+app.use(cookieParser());
 //file upload
 app.use(fileUpload());
 
