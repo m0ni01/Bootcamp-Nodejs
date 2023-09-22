@@ -15,7 +15,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
   }
   //if token does not exist
   if (!token) {
-    return next(new ErrorResponse("Not authorized", 401));
+    return next(new ErrorResponse("Please Enter authorization token ", 401));
   }
   try {
     //verify token
@@ -28,3 +28,12 @@ exports.protect = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse("Not authorized", 401));
   }
 });
+
+exports.authorize = (...data) => {
+  return (req, res, next) => {
+    if (!data.includes(req.user.role)) {
+      return next(new ErrorResponse("You dont have role", 401));
+    }
+    next();
+  };
+};

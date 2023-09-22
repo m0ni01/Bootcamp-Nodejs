@@ -4,6 +4,8 @@ const asyncHandler = require("../middleware/asynchandler");
 const geocoder = require("../utils/GeoCoder");
 const fileUpload = require("express-fileupload");
 const path = require("path");
+const { response } = require("express");
+const { default: slugify } = require("slugify");
 
 // @des         get all bootcamps
 // @route       GET /api/v1/bootcamps
@@ -29,6 +31,13 @@ exports.getBootcamp = asyncHandler(async (req, res, next) => {
 // @access      PRIVATE
 
 exports.createBootcamp = asyncHandler(async (req, res, next) => {
+  req.body.user = req.user.id;
+  //finding if bootcamp already published by use
+  const publishedbootcam = await Bootcamp.findOne({ user: req.user.id });
+
+  if (req.user.role !== "admin" && publishedbootcam) {
+    return next(new ErrorResponse("Bootcamp already published", 400));
+  }
   const createBootcamp = await Bootcamp.create(req.body);
   res.status(201).json({ success: true, data: createBootcamp });
 });
@@ -38,13 +47,32 @@ exports.createBootcamp = asyncHandler(async (req, res, next) => {
 // @access      PRIVATE
 
 exports.updateBootcamps = asyncHandler(async (req, res, next) => {
-  const bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
+  //finding bootcamp
+  let bootcamp = await Bootcamp.findById(req.params.id);
+  if (!bootcamp) {
+    return next(
+      new ErrorResponse(`Bootcamp not found with id ${req.params.id}`, 404)
+    );
+  }
+
+  //checking if bootcamp belongs to user
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `user with ${req.params.id} is not authorized to update`,
+        401
+      )
+    );
+  }
+  //updating slug
+  if (Object.keys(req.body).includes("name")) {
+    req.body.slug = slugify(req.body.name, { lower: true });
+  }
+  console.log(req.body);
+  bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
   });
-  if (!bootcamp) {
-    return next(new ErrorResponse(`Course not found ${req.params.id}`, 404));
-  }
 
   res.status(200).json({ success: true, data: bootcamp });
 });
