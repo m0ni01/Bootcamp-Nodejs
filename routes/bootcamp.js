@@ -15,6 +15,7 @@ const {
 
 //router of courses
 const courseRouter = require("./course.js");
+const reviewrouter = require("./reviews");
 
 //advanced searchmiddleware
 const advancedResults = require("../middleware/advancedResult.js");
@@ -22,6 +23,7 @@ const Bootcamp = require("../models/Bootcamp.js");
 
 //re-routing to courses
 router.use("/:bootcampId/courses", courseRouter);
+router.use("/:bootcampId/reviews", reviewrouter);
 
 router
   .route("/")

@@ -11,6 +11,8 @@ const cookieParser = require("cookie-parser");
 const auth = require("./routes/auth.js");
 const course = require("./routes/course.js");
 const bootcamps = require("./routes/bootcamp.js");
+const users = require("./routes/user.js");
+const reviews = require("./routes/reviews.js");
 
 //load env vars
 dotenv.config({ path: "./config/config.env" });
@@ -41,6 +43,8 @@ const PORT = process.env.PORT || 5000;
 app.use("/api/v1/bootcamps", bootcamps);
 app.use("/api/v1/courses", course);
 app.use("/api/v1/auth", auth);
+app.use("/api/v1/users", users);
+app.use("/api/v1/reviews", reviews);
 
 //custom error handling
 app.use(errorhandler);

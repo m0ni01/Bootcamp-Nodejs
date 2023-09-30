@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Bootcamp = require("./models/Bootcamp");
 const Course = require("./models/Course");
 const User = require("./models/users");
+const Review = require("./models/reviews");
 const dotenv = require("dotenv");
 const fs = require("fs");
 const colors = require("colors");
@@ -25,12 +26,17 @@ const user = JSON.parse(
   fs.readFileSync(`${__dirname}/_data/users.json`, "utf-8")
 );
 
+const reviews = JSON.parse(
+  fs.readFileSync(`${__dirname}/_data/reviews.json`, "utf-8")
+);
+
 //importing bootcamp data
 const importData = async () => {
   try {
     await Bootcamp.create(bootcamps);
     await Course.create(courses);
     await User.create(user);
+    await Review.create(reviews);
     console.log("Data Imported".green.inverse);
     process.exit();
   } catch (error) {

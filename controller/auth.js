@@ -2,6 +2,7 @@ const ErrorResponse = require("../utils/ErrorResponse");
 const User = require("../models/users");
 const asyncHandler = require("../middleware/asynchandler");
 const sendemail = require("../utils/sendemail");
+const crypto = require("crypto");
 
 // @des         Register user
 // @route       POST /api/v1/auth/register
@@ -54,6 +55,49 @@ exports.getme = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: user });
 });
 
+// @des         Update User email and name
+// @route       GET /api/v1/auth/updateme
+// @access      Private
+exports.updateme = asyncHandler(async (req, res, next) => {
+  const fields = {
+    name: req.body.name,
+    email: req.body.email,
+  };
+  const user = await User.findByIdAndUpdate(req.user.id, fields, {
+    runValidators: true,
+    new: true,
+  });
+  res.status(200).json({ success: true, data: user });
+});
+
+// @des         Update Password
+// @route       Post /api/v1/auth/updatepassword
+// @access      Private
+
+exports.updatepasswd = asyncHandler(async (req, res, next) => {
+  const { oldpassword, newpassword } = req.body;
+  //if any field not provided
+  if (!oldpassword || !newpassword) {
+    return next(
+      new ErrorResponse(
+        "Please Provide both fields correctly newpassword and oldpassword",
+        401
+      )
+    );
+  }
+
+  //getting user
+  const user = await User.findById(req.user.id).select("+password");
+  //ismatch = await user.matchPassword(req.body.oldpassword);
+  const isMatch = await user.matchPassword(oldpassword);
+  if (!isMatch) {
+    return next(new ErrorResponse("Old Password does not match"));
+  }
+  user.password = newpassword;
+  await user.save();
+  res.status(200).json({ success: true, data: user });
+});
+
 // @des         Getting User info
 // @route       GET /api/v1/auth/me
 // @access      Private
@@ -82,6 +126,40 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
     return next(new ErrorResponse(`Server error ${err}`, 500));
   }
+});
+
+// @des         Reset Password
+// @route       PUT /api/v1/auth/resetpassoword/:token
+// @access      Public
+exports.resetepassword = asyncHandler(async (req, res, next) => {
+  if (!req.params.token) {
+    return next(new ErrorResponse("Please add token", 401));
+  }
+
+  const token = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+  const user = await User.findOne({
+    resetPasswordToken: token,
+    resetPasswordTokenExpiry: { $gt: Date.now() },
+  });
+  console.log(token);
+  console.log(user);
+
+  if (!user) {
+    return next(new ErrorResponse("Invalid Token", 401));
+  }
+  if (!req.body.password) {
+    return next(new ErrorResponse("Please Enter password", 401));
+  }
+  newpassword = req.body.password;
+  console.log(newpassword);
+  user.password = newpassword;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordTokenExpiry = undefined;
+  await user.save();
+  sendTokenResponse(user, 200, res);
 });
 
 //helper
